@@ -11,40 +11,22 @@
 ;;;;;;;; STRUCTS
 ;;;;;;;;
 
-; a world of the game
-(struct world (box obstacles frame level spawn-timers))
+; the world of the game
+(struct recursive-world (box [obstacles #:mutable] [frame #:mutable] [level #:mutable] [next-world #:mutable] [previous-world #:mutable] spawn-timers))
 
 ; the two main objects of the game
-(struct box (id center-point side-length frame jump-value velocity))
-(struct obstacle (x-value front-edge rear-edge width height velocity acceleration))
+(struct box (id [center-point #:mutable] [side-length #:mutable] [frame #:mutable]
+                [jump-value #:mutable] [velocity #:mutable]))
+(struct obstacle ([x-value #:mutable] [front-edge #:mutable] [rear-edge #:mutable] [width #:mutable] height [velocity #:mutable] acceleration))
 
 ; coordinates for a point
 (struct point (x y))
 
 ; frame defines the x-coordinates of the frame's left and right edge and y-coordinate for the bottom edge
-(struct frame (bottom left right))
+(struct frame ([bottom #:mutable] [left #:mutable] [right #:mutable]))
 
 ; a container for timers that decide when next obstacle can be spawned
 (struct spawn-timers ([time-to-spawn-window #:mutable] [spawn-window #:mutable]))
-
-;--------
-
-; the world of the game
-;(struct recursive-world (box [obstacles #:mutable] [frame #:mutable] [level #:mutable] [next-world #:mutable] [previous-world #:mutable] spawn-timers))
-
-; the two main objects of the game
-;(struct box (id [center-point #:mutable] [side-length #:mutable] [frame #:mutable]
-;                [jump-value #:mutable] [velocity #:mutable]))
-;(struct obstacle ([x-value #:mutable] [front-edge #:mutable] [rear-edge #:mutable] [width #:mutable] height [velocity #:mutable] acceleration))
-
-; coordinates for a point
-;(struct point (x y))
-
-; frame defines the x-coordinates of the frame's left and right edge and y-coordinate for the bottom edge
-;(struct frame ([bottom #:mutable] [left #:mutable] [right #:mutable]))
-
-; a container for timers that decide when next obstacle can be spawned
-;(struct spawn-timers ([time-to-spawn-window #:mutable] [spawn-window #:mutable]))
 
 ;;;;;;;;
 ;;;;;;;; CONSTANTS
@@ -421,6 +403,7 @@
 
 ; TODO:
 
+; add git
 ; refactor to functional style code
 ; use for loops instead of recursion
 ; add unit tests
