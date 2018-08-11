@@ -379,43 +379,20 @@
 ;;;;;;;; KEY EVENTS
 ;;;;;;;;
 
-; let all boxes jump if they are on the ground
-(define (jump w)
-  (jump-all-worlds w w))
-
-(define (jump-all-worlds all-worlds current-world)
-  (when (equal? (box-jump-value (recursive-world-box current-world)) 0)
-      (set-box-velocity! (recursive-world-box current-world) DEFAULT-JUMP-VELOCITY)) 
-
-  (if (equal? (recursive-world-next-world current-world) 'empty)
-      all-worlds
-      (jump-all-worlds all-worlds (recursive-world-next-world current-world))))
-
 ; let box at particular level jump if it is on the ground
-(define (jump1 w)
-  (jump-world-at-level w w 1))
+(define (jump worlds level)
+  (for/list ([w worlds])
+    (if (and (equal? (box-jump-value (world-box w)) 0)
+             (equal? (world-level w) level))
+        (make-jump w)
+        w)))
 
-(define (jump2 w)
-  (jump-world-at-level w w 2))
-
-(define (jump3 w)
-  (jump-world-at-level w w 3))
-
-(define (jump4 w)
-  (jump-world-at-level w w 4))
-
-(define (jump5 w)
-  (jump-world-at-level w w 5))
-
-(define (jump-world-at-level all-worlds current-world level)
-  (when (and (equal? (box-jump-value (recursive-world-box current-world)) 0)
-             (= level (recursive-world-level current-world)))
-      (set-box-velocity! (recursive-world-box current-world) DEFAULT-JUMP-VELOCITY)
-      all-worlds) 
-
-  (if (equal? (recursive-world-next-world current-world) 'empty)
-      all-worlds
-      (jump-world-at-level all-worlds (recursive-world-next-world current-world) level)))
+; construct new box with fresh jump
+(define (make-jump w)
+  (define new-box (struct-copy box (world-box w)
+                                 [velocity DEFAULT-JUMP-VELOCITY]))
+  (struct-copy world old-world
+                 [box new-box]))
 
 (start-game)
 
