@@ -107,12 +107,11 @@
 ; here we define actions of the player
 (define (player-action w k)
   (cond
-    [(key=? "1" k) (jump1 w)]
-    [(key=? "2" k) (jump2 w)]
-    [(key=? "3" k) (jump3 w)]
-    [(key=? "4" k) (jump4 w)]
-    [(key=? "5" k) (jump5 w)]
-    [(key=? "u" k) (jump w)]
+    [(key=? "1" k) (jump w 1)]
+    [(key=? "2" k) (jump w 2)]
+    [(key=? "3" k) (jump w 3)]
+    [(key=? "4" k) (jump w 4)]
+    [(key=? "5" k) (jump w 5)]
     [(key=? "q" k) (stop-with w)]))
 
 ; first, render one layer of a box and obstacles.
