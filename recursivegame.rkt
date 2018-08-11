@@ -194,23 +194,16 @@
 
 ; every tick all boxes grow and perhaps move vertically, and the objects spawn and move closer to the boxes.
 ; remove passed obstacles and the world when it is as big as the frame
-(define (update-all-worlds all-worlds current-world)
-  (update-box (recursive-world-box current-world) (recursive-world-frame current-world))
-  (update-obstacles (recursive-world-box current-world) (recursive-world-obstacles current-world))
-  (update-next-world-frame current-world)
-  (spawn-obstacle current-world)
-  (spawn-new-world current-world)
-  (remove-gone-obstacles current-world)
-
-  ; remove the uppermost world if it has reached the size of the main frame.
-  ; in that case also remove the link to it from the second uppermost world.
-  (cond
-    [(equal? (recursive-world-next-world current-world) 'empty) all-worlds]
-    [(> (box-side-length (recursive-world-box current-world)) FRAME-X)
-     (set-recursive-world-previous-world! (recursive-world-next-world current-world) 'empty)
-     (update-all-worlds (recursive-world-next-world current-world)
-                        (recursive-world-next-world current-world))]
-    [else (update-all-worlds all-worlds (recursive-world-next-world current-world))]))
+(define (update-all-worlds worlds)
+  (define temp-frame (box-frame (world-box (first worlds))))
+  (cons
+   (for/list ([w worlds]
+              #:when (< (box-side-length (world-box w)) FRAME-X))
+     (update-box (world-box w) (world-frame w))
+     (update-obstacles (world-box w) (world-obstacles w))
+     (update-world-frame w temp-frame)
+     (set! temp-frame (box-frame (world-box w))))
+   (spawn-world temp-frame)))
 
 ; make the box grow in the corners, and update its y-value according to velocity
 (define (update-box box current-world-frame)
