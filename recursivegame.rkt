@@ -12,7 +12,7 @@
 ;;;;;;;;
 
 ; a world of the game
-(struct world (box obstacles frame level spawn-timers))
+(struct world (box obstacles frame level timers))
 
 ; the two main objects of the game
 (struct box (id center-point side-length frame jump-value velocity))
@@ -25,26 +25,7 @@
 (struct frame (bottom left right))
 
 ; a container for timers that decide when next obstacle can be spawned
-(struct spawn-timers ([time-to-spawn-window #:mutable] [spawn-window #:mutable]))
-
-;--------
-
-; the world of the game
-;(struct recursive-world (box [obstacles #:mutable] [frame #:mutable] [level #:mutable] [next-world #:mutable] [previous-world #:mutable] spawn-timers))
-
-; the two main objects of the game
-;(struct box (id [center-point #:mutable] [side-length #:mutable] [frame #:mutable]
-;                [jump-value #:mutable] [velocity #:mutable]))
-;(struct obstacle ([x-value #:mutable] [front-edge #:mutable] [rear-edge #:mutable] [width #:mutable] height [velocity #:mutable] acceleration))
-
-; coordinates for a point
-;(struct point (x y))
-
-; frame defines the x-coordinates of the frame's left and right edge and y-coordinate for the bottom edge
-;(struct frame ([bottom #:mutable] [left #:mutable] [right #:mutable]))
-
-; a container for timers that decide when next obstacle can be spawned
-;(struct spawn-timers ([time-to-spawn-window #:mutable] [spawn-window #:mutable]))
+(struct timers ([time-to-spawn-window #:mutable] [spawn-window #:mutable]))
 
 ;;;;;;;;
 ;;;;;;;; CONSTANTS
@@ -56,7 +37,7 @@
 (define FRAME-Y (- Y 100))
 (define FRAME (rectangle FRAME-X FRAME-Y 'outline 'white))
 (define BASE-OF-FRAME ( - FRAME-Y 1))
-(define DEFAULT-WORLD-FRAME (frame BASE-OF-FRAME 0 FRAME-X))
+(define GAME-FRAME (frame BASE-OF-FRAME 0 FRAME-X))
 
 ; constants for boxes
 (define DEFAULT-CENTER-POINT (point (/ FRAME-X 2) (/ FRAME-Y 2)))
@@ -92,17 +73,17 @@
 
 ; start the game
 (define (start-game)
-  (big-bang (initialize-recursive-world DEFAULT-WORLD-FRAME 'empty)
+  (big-bang (initialize-game GAME-FRAME)
     (on-key player-action)
     (to-draw render-world)
-    (on-tick update-world TICK-RATE)
+    (on-tick update-game TICK-RATE)
     (stop-when collision? render-the-end)))
 
 ; we begin the game with one box and one obstacle
-(define (initialize-recursive-world frame previous-world)
-  (define box0 (initialize-box previous-world))
+(define (initialize-game frame)
+  (define box0 (initialize-box))
   (define obstacles0 '())
-  (recursive-world box0 obstacles0 frame 1 'empty previous-world (spawn-timers DEFAULT-TIME-TO-SPAWN-WINDOW DEFAULT-SPAWN-WINDOW)))
+  (world box0 obstacles0 frame 1 (timers DEFAULT-TIME-TO-SPAWN-WINDOW DEFAULT-SPAWN-WINDOW)))
 
 ; here we define actions of the player
 (define (player-action w k)
@@ -131,8 +112,8 @@
                     (render-world (recursive-world-next-world w)))))
 
 ; update the state of all the worlds
-(define (update-world w)
-  (update-all-worlds w w))
+(define (update-game w)
+  (spawn-world (update-worlds w)))
 
 ; is there a collision between any box and any obstacle?
 (define (collision? w)
@@ -151,7 +132,7 @@
 ;;;;;;;;
 
 ; the first box
-(define (initialize-box previous-world)
+(define (initialize-box)
   (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 25 25) 0 0))
 
 ;;;;;;;;
@@ -194,16 +175,27 @@
 
 ; every tick all boxes grow and perhaps move vertically, and the objects spawn and move closer to the boxes.
 ; remove passed obstacles and the world when it is as big as the frame
-(define (update-all-worlds worlds)
-  (define temp-frame (box-frame (world-box (first worlds))))
-  (cons
-   (for/list ([w worlds]
-              #:when (< (box-side-length (world-box w)) FRAME-X))
+(define (update-worlds worlds)
+  (define previous-frames (cons DEFAULT-WORLD-FRAME (map world-frame worlds)))
+  (for/list ([w worlds]
+             [pf previous-frames]
+             #:when (< (box-side-length (world-box w)) FRAME-X))
+    (world
      (update-box (world-box w) (world-frame w))
      (update-obstacles (world-box w) (world-obstacles w))
-     (update-world-frame w temp-frame)
-     (set! temp-frame (box-frame (world-box w))))
-   (spawn-world temp-frame)))
+     (update-world-frame w pf)
+     (world-level w)
+     (update-timers world-timers w))))
+
+; spawn a new world if the last world is old enough
+(define (spawn-world worlds)
+  (if (< (timers-spawn-world (world-timers (last worlds))) 0)
+      (cons (for/list ([w worlds]
+                       [k (in-naturals)])
+              (struct-copy world w
+                           [level k]))
+            (initialize-recursive-world (box-frame (recursive-world-box current-world)) current-world))  ;; HERE WE ARE
+      worlds))
 
 ; make the box grow in the corners, and update its y-value according to velocity
 (define (update-box box current-world-frame)
