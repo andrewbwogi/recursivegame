@@ -197,58 +197,50 @@
             (initialize-recursive-world (box-frame (recursive-world-box current-world)) current-world))  ;; HERE WE ARE
       worlds))
 
+(struct box (id center-point side-length frame jump-value velocity))
+
 ; make the box grow in the corners, and update its y-value according to velocity
-(define (update-box box current-world-frame)
-  (update-box-center-point box)
-  (update-box-side-length box)
-  (update-box-frame box current-world-frame)
-  (update-box-jump-value box)
-  (box-ground-hit box)
-  (update-box-velocity box))
+(define (update-box box world-frame)
+  (box
+   (box-id box)
+   (update-box-center-point box)
+   (update-box-side-length box)
+   (update-box-frame box world-frame)
+   (update-box-jump-value box)
+   (update-box-velocity box)))
 
 ; set correct box center point in relation to the ground and its distance to ground
 (define (update-box-center-point box)
-  (set-box-center-point! box (point (/ FRAME-X 2) (- (frame-bottom (box-frame box))
-                                                     (/ (box-side-length box) 2)))))
+  (point (/ FRAME-X 2) (- (frame-bottom (box-frame box))
+                          (/ (box-side-length box) 2))))
+
 ; update the size of the box
 (define (update-box-side-length box)
-  (set-box-side-length! box (+ (box-side-length box) BOX-GROWTH)))
+  (+ (box-side-length box) BOX-GROWTH))
 
 ; set the area that defines the borders of the box
 (define (update-box-frame box world-frame)
   (define half-side-length (/ (box-side-length box) 2))
   (define center-x (point-x (box-center-point box)))
-  (set-frame-left! (box-frame box) (- center-x half-side-length))
-  (set-frame-right! (box-frame box) (+ center-x half-side-length))
-  (set-frame-bottom! (box-frame box) (- (frame-bottom world-frame) (box-jump-value box))))
+  (frame
+   (- center-x half-side-length)
+   (+ center-x half-side-length)
+   (- (frame-bottom world-frame) (box-jump-value box))))
 
 ; set new jump value, which is the y distance to the world bottom
 (define (update-box-jump-value box)
-  (set-box-jump-value! box (calculate-new-jump-value (box-jump-value box) (box-velocity box))))
-
-; calculate new jump value
-(define (calculate-new-jump-value old-jump-value velocity)
-  (+ old-jump-value
-     (+ (* velocity TIME) (* TIME TIME (/ 1 2) GRAVITY))))
-
-; set velocity and jump value to 0 if the box has hit the ground
-(define (box-ground-hit box)
-  (when (< (box-jump-value box) 0)
-    (set-box-jump-value! box 0)
-    (set-box-velocity! box 0)))
+  (define current-jump-value (box-jump-value box))
+  (define velocity (box-velocity box))
+  (if (< (box-jump-value box) 0)
+      0
+      (+ current-jump-value
+         (+ (* velocity TIME) (* TIME TIME (/ 1 2) GRAVITY)))))
 
 ; set new box velocity
 (define (update-box-velocity box)
-  (set-box-velocity! box (calculate-new-velocity (box-velocity box) GRAVITY)))
-
-; calculate new velocity
-(define (calculate-new-velocity velocity acceleration)
-  (+ velocity (* acceleration TIME)))
-
-; give the next world the updated frame data. the next world frame is this world's box' frame.
-(define (update-next-world-frame current-world)
-  (when (not (equal? (recursive-world-next-world current-world) 'empty))
-    (set-recursive-world-frame! (recursive-world-next-world current-world) (box-frame (recursive-world-box current-world))))) 
+  (if (< (box-jump-value box) 0)
+      0
+      (+ (box-velocity box) (* GRAVITY TIME))))
 
 ; update the obstacle x-value and velocity
 (define (update-obstacles box obstacles)
@@ -274,6 +266,11 @@
 ; set new obstacle velocity
 (define (update-obstacle-velocity obstacle)
   (set-obstacle-velocity! obstacle (calculate-new-velocity (obstacle-velocity obstacle) (obstacle-acceleration obstacle))))
+
+; give the next world the updated frame data. the next world frame is this world's box' frame.
+(define (update-world-frame current-world)
+  (when (not (equal? (recursive-world-next-world current-world) 'empty))
+    (set-recursive-world-frame! (recursive-world-next-world current-world) (box-frame (recursive-world-box current-world))))) 
 
 ; spawn a new world inside the box
 (define (spawn-new-world current-world)
