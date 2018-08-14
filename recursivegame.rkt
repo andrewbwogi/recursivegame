@@ -131,9 +131,15 @@
 ;;;;;;;; INIT
 ;;;;;;;;
 
-; the first box
+; a new box
 (define (initialize-box)
   (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 25 25) 0 0))
+
+; a new obstacle
+(define (initialize-obstacle frame)
+  (obstacle (frame-right frame) (- DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
+            (+ DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2)) DEFAULT-OBSTACLE-WIDTH
+            DEFAULT-OBSTACLE-HEIGHT DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))
 
 ;;;;;;;;
 ;;;;;;;; RENDERING
@@ -176,16 +182,18 @@
 ; every tick all boxes grow and perhaps move vertically, and the objects spawn and move closer to the boxes.
 ; remove passed obstacles and the world when it is as big as the frame
 (define (update-worlds worlds)
-  (define previous-frames (cons DEFAULT-WORLD-FRAME (map world-frame worlds)))
+  (define world-frame DEFAULT-WORLD-FRAME)
   (for/list ([w worlds]
-             [pf previous-frames]
              #:when (< (box-side-length (world-box w)) FRAME-X))
-    (world
-     (update-box (world-box w) (world-frame w))
-     (update-obstacles (world-box w) (world-obstacles w))
-     (update-world-frame w pf)
-     (world-level w)
-     (update-timers world-timers w))))
+    (define updated-world
+      (world
+       (update-box (world-box w) (world-frame w))
+       (update-obstacles (world-box w) (world-obstacles w) (world-frame w))
+       world-frame
+       (world-level w)
+       (update-timers (world-timers w))))
+    (set! world-frame (world-box updated-world))
+    updated-world))
 
 ; spawn a new world if the last world is old enough
 (define (spawn-world worlds)
@@ -194,10 +202,8 @@
                        [k (in-naturals)])
               (struct-copy world w
                            [level k]))
-            (initialize-recursive-world (box-frame (recursive-world-box current-world)) current-world))  ;; HERE WE ARE
+            (initialize-recursive-world (box-frame (recursive-world-box current-world)) current-world)) 
       worlds))
-
-(struct box (id center-point side-length frame jump-value velocity))
 
 ; make the box grow in the corners, and update its y-value according to velocity
 (define (update-box box world-frame)
@@ -229,12 +235,10 @@
 
 ; set new jump value, which is the y distance to the world bottom
 (define (update-box-jump-value box)
-  (define current-jump-value (box-jump-value box))
-  (define velocity (box-velocity box))
   (if (< (box-jump-value box) 0)
       0
-      (+ current-jump-value
-         (+ (* velocity TIME) (* TIME TIME (/ 1 2) GRAVITY)))))
+      (+ (box-jump-value box)
+         (+ (* (box-velocity box) TIME) (* TIME TIME (/ 1 2) GRAVITY)))))
 
 ; set new box velocity
 (define (update-box-velocity box)
@@ -242,99 +246,77 @@
       0
       (+ (box-velocity box) (* GRAVITY TIME))))
 
-; update the obstacle x-value and velocity
-(define (update-obstacles box obstacles)
-  (update-obstacles-x-value obstacles)
-  (update-obstacles-velocity box obstacles))
-
 ; make each obstacle move one step to the left
-(define (update-obstacles-x-value obstacles)
-  (map (lambda (o)
-         (set-obstacle-x-value! o (- (obstacle-x-value o) (obstacle-velocity o)))
-         (set-obstacle-front-edge! o (- (obstacle-x-value o) (/ (obstacle-width o) 2)))
-         (set-obstacle-rear-edge! o (+ (obstacle-x-value o) (/ (obstacle-width o) 2))))
-       obstacles))
-
-; if the obstacle is underneath the box, make it accelerate
-(define (update-obstacles-velocity box obstacles)
-  (map (lambda (o)
-         (when (and (< (frame-left (box-frame box)) (obstacle-rear-edge o))
-                    (> (frame-right (box-frame box)) (obstacle-front-edge o)))
-           (update-obstacle-velocity o)))                       
-       obstacles))
-
-; set new obstacle velocity
-(define (update-obstacle-velocity obstacle)
-  (set-obstacle-velocity! obstacle (calculate-new-velocity (obstacle-velocity obstacle) (obstacle-acceleration obstacle))))
-
-; give the next world the updated frame data. the next world frame is this world's box' frame.
-(define (update-world-frame current-world)
-  (when (not (equal? (recursive-world-next-world current-world) 'empty))
-    (set-recursive-world-frame! (recursive-world-next-world current-world) (box-frame (recursive-world-box current-world))))) 
-
-; spawn a new world inside the box
-(define (spawn-new-world current-world)
-  (when (and (equal? (recursive-world-next-world current-world) 'empty)
-             (> (box-side-length (recursive-world-box current-world)) BOX-SIDE-LENGTH-FOR-NEW-WORLD-SPAWN))
-    (update-previous-world-level current-world 2)
-    (set-recursive-world-next-world! current-world (initialize-recursive-world (box-frame (recursive-world-box current-world)) current-world))))
-
-; if a new world was recently spawned, update the level of each world.
-(define (update-previous-world-level current-world level)
-  (set-recursive-world-level! current-world level)
-  (when (not (equal? (recursive-world-previous-world current-world) 'empty))
-    (update-previous-world-level (recursive-world-previous-world current-world) (+ level 1))))
-
-; remove obstacles that are out of sight from the list
-(define (remove-gone-obstacles w)
-  (when (and (not (empty? (recursive-world-obstacles w)))
-             (< (obstacle-rear-edge (first (recursive-world-obstacles w))) (frame-left (recursive-world-frame w))))
-    (set-recursive-world-obstacles! w (rest (recursive-world-obstacles w)))))
+(define (update-obstacles box obstacles frame timers)
+  (append (map (lambda (o)
+                 (struct-copy obstacle o
+                              [x-value (- (obstacle-x-value o) (obstacle-velocity o))]
+                              [front-edge (- (obstacle-x-value o) (/ (obstacle-width o) 2))]
+                              [rear-edge (+ (obstacle-x-value o) (/ (obstacle-width o) 2))]
+                              [velocity (update-obstacle-velocity b o)]))
+               (remove-gone-obstacles obstacles frame))
+          (spawn-obstacle timers box frame)))
 
 ; add a new obstacle to the world's obstacle list if it is time and the box size is not too big
-(define (spawn-obstacle current-world)
-  (define time-to-spawn-window (spawn-timers-time-to-spawn-window (recursive-world-spawn-timers current-world)))
-  (define spawn-window (spawn-timers-spawn-window (recursive-world-spawn-timers current-world)))
-  (cond
-    [(and (< time-to-spawn-window 0)
-          (< spawn-window 0)
-          (< (box-side-length (recursive-world-box current-world)) BOX-SIZE-LIMIT-FOR-OBSTACLE-SPAWN))
-     (spawn-and-reset-timers current-world)]
-    [(< time-to-spawn-window 0) (decrement-spawn-window current-world spawn-window)]
-    [else (decrement-time-to-spawn-window current-world time-to-spawn-window)]))
+(define (spawn-obstacle timers box frame)
+  (if
+      (and (< (timers-arm-timer timers) 0)
+           (< (timers-spawn-timer timers) 0)
+           (< (box-side-length box) BOX-SIZE-LIMIT-FOR-OBSTACLE-SPAWN))
+    (initialize-obstacle frame)
+    '()))
 
-; spawn an obstacle and reset timers
-(define (spawn-and-reset-timers current-world)
-  (set-recursive-world-obstacles! current-world (append (recursive-world-obstacles current-world)
-                                              (list (obstacle (frame-right (recursive-world-frame current-world))
-                                                              (- DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
-                                                              (+ DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
-                                                              DEFAULT-OBSTACLE-WIDTH
-                                                              DEFAULT-OBSTACLE-HEIGHT
-                                                              DEFAULT-OBSTACLE-VELOCITY
-                                                              DEFAULT-OBSTACLE-ACCELERATION))))
-  (reset-timers current-world))
+; accelerate the obstacle if it is under the box
+(define (remove-gone-obstacles obstacles frame)
+  if (< (obstacle-rear-edge (first obstacles)) (frame-left frame))
+                 (rest obstacles)
+                 obstacles)
+
+; accelerate the obstacle if it is under the box
+(define (update-obstacle-velocity b o)
+  (if (and (< (frame-left (box-frame b)) (obstacle-rear-edge o))
+           (> (frame-right (box-frame b)) (obstacle-front-edge o)))
+      (+ (obstacle-velocity o) (* (obstacle-acceleration o) TIME))
+      (obstacle-velocity o)))
+
+; update all timers
+(define (update-timers timers)
+  (cond
+    [(and (< (timers-arm-timer timers) 0)
+          (< (timers-spawn-timer timers) 0))
+     (reset-arm-spawn)]
+    [(< (timers-arm-timer timers) 0)
+     (decrement-spawn timers)]
+    [else (decrement-arm timers)]))
 
 ; reset timers
-(define (reset-timers current-world)
-  (set-spawn-timers-time-to-spawn-window! (recursive-world-spawn-timers current-world) DEFAULT-TIME-TO-SPAWN-WINDOW)
-  (set-spawn-timers-spawn-window! (recursive-world-spawn-timers current-world) (random (round DEFAULT-SPAWN-WINDOW))))
+(define (reset-arm-spawn)
+  (timers DEFAULT-TIME-TO-SPAWN-WINDOW (random (round DEFAULT-SPAWN-WINDOW))))
 
 ; count down time during which an obstacle may be spawned
-(define (decrement-spawn-window current-world timer)
-  (set-spawn-timers-spawn-window! (recursive-world-spawn-timers current-world) (sub1 timer)))
+(define (decrement-spawn timers) 
+  (timers (timers-arm-timer timers)
+          (sub1 (timers-spawn-timer timers))))
 
 ; count down the time to the spawn window
-(define (decrement-time-to-spawn-window current-world timer)
-  (set-spawn-timers-time-to-spawn-window! (recursive-world-spawn-timers current-world)
-                                                  (sub1 timer)))
+(define (decrement-arm timers) 
+  (timers (sub1 (timers-arm-timer timers))
+          (timers-spawn-timer timers)))
+
+
+
+
+
+
+
+
 
 ; make sure all obstacles are outside the box' collision area
-(define (box-above-all-obstacles? box obstacles)
+(define (above-obstacles? box obstacles)
   (if (empty? obstacles)
       #t
       (and (outside-collision-area? box (first obstacles))
-           (box-above-all-obstacles? box (rest obstacles)))))
+           (above-obstacles? box (rest obstacles)))))
 
 ; return true if the box is above the obstacle height and the obstacle is either
 ; outside the right edge of the box or the left edge of the box.
