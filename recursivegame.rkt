@@ -116,11 +116,11 @@
   (spawn-world (update-worlds w)))
 
 ; is there a collision between any box and any obstacle?
-(define (collision? w)
-  (cond
-    [(not (box-above-all-obstacles? (recursive-world-box w) (recursive-world-obstacles w))) #t]
-    [(equal? (recursive-world-next-world w) 'empty) #f]
-    [else (collision? (recursive-world-next-world w))]))
+(define (collision? worlds)
+  (for/or ([w worlds])
+  (if (not (above-obstacles? (world-box w) (world-obstacles w)))
+      #t
+      #f)))
 
 ; just place "game over" text on top of last rendered image
 (define (render-the-end w)
@@ -303,40 +303,12 @@
   (timers (sub1 (timers-arm-timer timers))
           (timers-spawn-timer timers)))
 
-
-
-
-
-
-
-
-
 ; make sure all obstacles are outside the box' collision area
 (define (above-obstacles? box obstacles)
-  (if (empty? obstacles)
-      #t
-      (and (outside-collision-area? box (first obstacles))
-           (above-obstacles? box (rest obstacles)))))
-
-; return true if the box is above the obstacle height and the obstacle is either
-; outside the right edge of the box or the left edge of the box.
-(define (outside-collision-area? box obstacle)
-  (or (> (box-jump-value box) (obstacle-height obstacle))
-      (or (>= (frame-left (box-frame box)) (obstacle-rear-edge obstacle))
-          (<= (frame-right (box-frame box)) (obstacle-front-edge obstacle)))))
-
-; time for box to reach max jump height from the height of an obstacle
-(define PERIOD1-EXACT (/ (sqrt (+ (sqr DEFAULT-JUMP-VELOCITY) 
-                                  (* 2 GRAVITY DEFAULT-OBSTACLE-HEIGHT)))(abs GRAVITY)))
-
-; time for obstacle to pass underneath the box
-(define PERIOD3 (/ (* 2 DEFAULT-BOX-SIZE) 
-                   (+ DEFAULT-OBSTACLE-VELOCITY
-                      (sqrt (* 2 DEFAULT-OBSTACLE-ACCELERATION DEFAULT-BOX-SIZE)))))
-
-; time for box to reach ground from max jump height
-(define PERIOD2-EXACT (abs(/ DEFAULT-JUMP-VELOCITY 
-                             GRAVITY)))
+  (for/and ([o obstacles])
+    (or (> (box-jump-value box) (obstacle-height o))
+        (or (>= (frame-left (box-frame box)) (obstacle-rear-edge o))
+            (<= (frame-right (box-frame box)) (obstacle-front-edge o))))))
 
 ;;;;;;;;
 ;;;;;;;; KEY EVENTS
