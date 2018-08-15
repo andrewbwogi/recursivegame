@@ -25,7 +25,7 @@
 (struct frame (bottom left right))
 
 ; a container for timers that decide when next obstacle can be spawned
-(struct timers ([time-to-spawn-window #:mutable] [spawn-window #:mutable]))
+(struct timers (arm-timer spawn-timer))
 
 ;;;;;;;;
 ;;;;;;;; CONSTANTS
@@ -75,7 +75,7 @@
 (define (start-game)
   (big-bang (initialize-game GAME-FRAME)
     (on-key player-action)
-    (to-draw render-world)
+    (to-draw render-game)
     (on-tick update-game TICK-RATE)
     (stop-when collision? render-the-end)))
 
@@ -98,18 +98,16 @@
 ; first, render one layer of a box and obstacles.
 ; then, render all the remaining layers and
 ; combine them into one composite image
-(define (render-world w)
-  (define images-and-positions (make-images-and-positions (recursive-world-box w)
-                                                          (recursive-world-obstacles w)
-                                                          (frame-bottom (recursive-world-frame w)))) 
-
-  (if (equal? (recursive-world-next-world w) 'empty)
-      (place-images (first images-and-positions)
-                    (second images-and-positions)
-                    FRAME)
-      (place-images (first images-and-positions)
-                    (second images-and-positions)
-                    (render-world (recursive-world-next-world w)))))
+(define (render-game w)
+  (define images (cons (draw-box world-box w) (draw-obstacles world-obstacles w)))
+  (define positions (cons (box-position world-box w)
+                          (obstacles-positions (world-obstacles w) (world-frame w))))
+  (for/fold ([acc FRAME])
+            ([i images]
+             [p positions])
+    (place-images i
+                  p
+                  acc)))
 
 ; update the state of all the worlds
 (define (update-game w)
@@ -125,7 +123,7 @@
 ; just place "game over" text on top of last rendered image
 (define (render-the-end w)
   (overlay (text "Game Over" 36 "black"); (text (number->string (spawn-timers-timer2 (recursive-world-spawn-timers w)))  36 "black")
-           (render-world w)))
+           (render-game w)))
 
 ;;;;;;;;
 ;;;;;;;; INIT
@@ -145,22 +143,15 @@
 ;;;;;;;; RENDERING
 ;;;;;;;;
 
-; draw the different objects, extract their respective positions
-; and combine everything into a list of two lists (images and positions).
-(define (make-images-and-positions box obstacles world-frame-bottom)
-  (define box-image (list (draw-box box)))
-  (define obstacle-images (draw-obstacles obstacles))
-  (define box-position (list (make-posn (point-x (box-center-point box))
-                                        (point-y (box-center-point box)))))
-  (define obstacle-positions (get-obstacle-positions obstacles world-frame-bottom))       
-  (define all-images (append box-image obstacle-images))
-  (define all-positions (append box-position obstacle-positions))
-  (list all-images all-positions))
-
+; make a box into a position of the box
+(define (box-position box)
+  (make-posn (point-x (box-center-point box))
+             (point-y (box-center-point box))))
+  
 ; make a list of obstacles into a list of positions of these obstacles
-(define (get-obstacle-positions obstacles world-frame-bottom)
+(define (obstacles-positions obstacles frame)
   (define (extract-positions obstacle list-rest)
-    (cons (make-posn (obstacle-x-value obstacle) (- world-frame-bottom (/ (obstacle-height obstacle) 2)))
+    (cons (make-posn (obstacle-x-value obstacle) (- (frame-bottom frame) (/ (obstacle-height obstacle) 2)))
           list-rest))
   (foldr extract-positions '() obstacles))
 
@@ -182,7 +173,7 @@
 ; every tick all boxes grow and perhaps move vertically, and the objects spawn and move closer to the boxes.
 ; remove passed obstacles and the world when it is as big as the frame
 (define (update-worlds worlds)
-  (define world-frame DEFAULT-WORLD-FRAME)
+  (define world-frame GAME-FRAME)
   (for/list ([w worlds]
              #:when (< (box-side-length (world-box w)) FRAME-X))
     (define updated-world
@@ -335,7 +326,9 @@
 
 ; refactor to functional style code
 ; use for loops instead of recursion
+; refactor into separate modules
 ; add unit tests
+; have complete x and y coordinates in obstacles. dont use frame-bottom in rendering. create a generic get-positions function.
 ; (A) refactor
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
