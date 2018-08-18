@@ -25,7 +25,7 @@
 (struct frame (bottom left right))
 
 ; a container for timers that decide when next obstacle can be spawned
-(struct timers (arm-timer spawn-timer))
+(struct timers (arm-obstacle-spawn spawn-obstacle spawn-world))
 
 ;;;;;;;;
 ;;;;;;;; CONSTANTS
@@ -73,14 +73,14 @@
 
 ; start the game
 (define (start-game)
-  (big-bang (initialize-game GAME-FRAME)
+  (big-bang (initialize-world GAME-FRAME)
     (on-key player-action)
     (to-draw render-game)
     (on-tick update-game TICK-RATE)
     (stop-when collision? render-the-end)))
 
 ; we begin the game with one box and one obstacle
-(define (initialize-game frame)
+(define (initialize-world frame)
   (define box0 (initialize-box))
   (define obstacles0 '())
   (world box0 obstacles0 frame 1 (timers DEFAULT-TIME-TO-SPAWN-WINDOW DEFAULT-SPAWN-WINDOW)))
@@ -193,7 +193,7 @@
                        [k (in-naturals)])
               (struct-copy world w
                            [level k]))
-            (initialize-recursive-world (box-frame (recursive-world-box current-world)) current-world)) 
+            (initialize-world (box-frame (world-box current-world)) current-world)) 
       worlds))
 
 ; make the box grow in the corners, and update its y-value according to velocity
@@ -251,8 +251,8 @@
 ; add a new obstacle to the world's obstacle list if it is time and the box size is not too big
 (define (spawn-obstacle timers box frame)
   (if
-      (and (< (timers-arm-timer timers) 0)
-           (< (timers-spawn-timer timers) 0)
+      (and (< (timers-arm-obstacle-spawn timers) 0)
+           (< (timers-spawn-obstacle timers) 0)
            (< (box-side-length box) BOX-SIZE-LIMIT-FOR-OBSTACLE-SPAWN))
     (initialize-obstacle frame)
     '()))
@@ -273,26 +273,27 @@
 ; update all timers
 (define (update-timers timers)
   (cond
-    [(and (< (timers-arm-timer timers) 0)
-          (< (timers-spawn-timer timers) 0))
-     (reset-arm-spawn)]
+    [(< (timers-arm-obstacle-spawn timers) 0)
+     (reset-obstacle-arm timers)]
     [(< (timers-arm-timer timers) 0)
-     (decrement-spawn timers)]
-    [else (decrement-arm timers)]))
+     (decrement-world-obstacle timers)]
+    [else (decrement-world-arm timers)]))
 
-; reset timers
-(define (reset-arm-spawn)
-  (timers DEFAULT-TIME-TO-SPAWN-WINDOW (random (round DEFAULT-SPAWN-WINDOW))))
+; reset spawn-obstacle and arm-spawn-obstacle timers
+(define (reset-obstacle-arm timers)
+  (timers DEFAULT-TIME-TO-SPAWN-WINDOW (random (round DEFAULT-SPAWN-WINDOW)) (timers-spawn-world timers)))
 
 ; count down time during which an obstacle may be spawned
-(define (decrement-spawn timers) 
-  (timers (timers-arm-timer timers)
-          (sub1 (timers-spawn-timer timers))))
+(define (decrement-world-obstacle timers) 
+  (timers (timers-arm-obstacle-spawn timers)
+          (sub1 (timers-spawn-obstacle timers))
+          (sub1 (timers-spawn-world timers))))
 
 ; count down the time to the spawn window
-(define (decrement-arm timers) 
-  (timers (sub1 (timers-arm-timer timers))
-          (timers-spawn-timer timers)))
+(define (decrement-world-arm timers) 
+  (timers (sub1 (timers-arm-obstacle-spawn timers))
+          (timers-spawn-obstacle timers)
+          (sub1 (timers-spawn-world timers))))
 
 ; make sure all obstacles are outside the box' collision area
 (define (above-obstacles? box obstacles)
