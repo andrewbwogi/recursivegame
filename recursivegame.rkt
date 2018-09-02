@@ -44,7 +44,7 @@
 (define DEFAULT-BOX-SIZE 5)
 (define BOX-GROWTH 0.5)
 (define DEFAULT-JUMP-VELOCITY 90)
-(define BOX-SIZE-LIMIT-FOR-OBSTACLE-SPAWN (* FRAME-X 0.9))
+(define BOX-SIZE-LIMIT-FOR-OBSTACLE-SPAWN (* FRAME-X 0.8))
 (define BOX-SIDE-LENGTH-FOR-NEW-WORLD-SPAWN 200)
 
 ; constants for obstacles
@@ -333,12 +333,10 @@
 
 ; TODO:
 
-; stop spawning obstacles when box is big enough
 ; refactor into separate modules
 ; add unit tests
+; add contracts to main functions
 ; have complete x and y coordinates in obstacles. dont use frame-bottom in rendering. create a generic get-positions function.
-; rename timers and timer functions
-; (A) refactor
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
 ; (A) link TIME to box growth, and all velocities. make them a fraction of time so when time changes, relationships remain the same.
