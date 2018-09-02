@@ -1,6 +1,6 @@
 #lang racket
 (provide update-game initialize-world collision?)
-(require "structs-constants.rkt")
+(require "structs-constants.rkt" rackunit)
 
 ; update the state of all the worlds
 (define (update-game w)
@@ -21,6 +21,8 @@
        (update-timers (world-timers w))))
     (set! new-world-frame (box-frame (world-box updated-world)))
     updated-world))
+(module+ test
+  (require rackunit))
 
 ; spawn a new world if the last world is old enough
 (define (spawn-world worlds)
@@ -46,10 +48,16 @@
 (define (update-box-center-point box)
   (point (/ FRAME-X 2) (- (frame-bottom (box-frame box))
                           (/ (box-side-length box) 2))))
+(module+ test
+  (define half-x-screen (/ FRAME-X 2))
+  (define test-box (box 0 (point half-x-screen 20) 40 (frame 40 0 0) 20 10))
+  (check-equal? (point half-x-screen 20) (update-box-center-point test-box)))
 
 ; update the size of the box
 (define (update-box-side-length box)
   (+ (box-side-length box) BOX-GROWTH))
+(module+ test
+  (check-equal? (+ 40 BOX-GROWTH) (update-box-side-length test-box)))
 
 ; set the area that defines the borders of the box
 (define (update-box-frame box old-world-frame)
@@ -60,6 +68,9 @@
    (- center-x half-side-length)
    (+ center-x half-side-length)
    ))
+(module+ test
+  (define old-world-frame (frame 900 0 900))
+  (check-equal? (frame 880 (- half-x-screen 20) (+ half-x-screen 20)) (update-box-frame test-box old-world-frame)))
 
 ; set new jump value, which is the y distance to the world bottom
 (define (update-box-jump-value old-box)  
@@ -67,12 +78,21 @@
       0
       (+ (box-jump-value old-box)
          (+ (* (box-velocity old-box) TIME) (* TIME TIME (/ 1 2) GRAVITY)))))
+(module+ test
+  (define new-jump-value (+ 20 (+ (* 10 TIME) (* TIME TIME (/ 1 2) GRAVITY))))
+  (define test-box-ground (struct-copy box test-box [jump-value -1]))
+  (check-equal? new-jump-value (update-box-jump-value test-box))
+  (check-equal? 0 (update-box-jump-value test-box-ground)))
 
 ; set new box velocity
 (define (update-box-velocity old-box)
   (if (< (round (box-jump-value old-box)) 0)
       0
       (+ (box-velocity old-box) (* GRAVITY TIME))))
+(module+ test
+  (define new-velocity (+ 10 (* GRAVITY TIME)))
+  (check-equal? new-velocity (update-box-velocity test-box))
+  (check-equal? 0 (update-box-velocity test-box-ground)))
 
 ; make each obstacle move one step to the left
 (define (update-obstacles box obstacles frame timers)
