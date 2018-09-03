@@ -168,6 +168,9 @@
     [(< (timers-arm-obstacle-spawn old-timers) 0)
      (decrement-world-obstacle old-timers)]
     [else (decrement-world-arm old-timers)]))
+(module+ test
+  (check-equal? (update-timers test-timers) (timers 353 13 111))
+  (check-equal? (update-timers (timers -1 13 112)) (timers -1 12 111)))
 
 ; reset spawn-obstacle and arm-spawn-obstacle timers
 (define (reset-obstacle-arm old-timers)
@@ -191,6 +194,10 @@
     (or (> (box-jump-value box) (obstacle-height o))
         (or (> (frame-left (box-frame box)) (obstacle-rear-edge o))
             (< (frame-right (box-frame box)) (obstacle-front-edge o))))))
+(module+ test
+  (define test-obstacle-collision (list (obstacle 9 8 10 5 35 1.5 45)))
+  (check-equal? (above-obstacles? test-box test-obstacles) #t)
+  (check-equal? (above-obstacles? test-box-ground test-obstacle-collision) #f))
 
 ; is there a collision between any box and any obstacle?
 (define (collision? worlds)
