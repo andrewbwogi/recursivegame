@@ -21,8 +21,6 @@
        (update-timers (world-timers w))))
     (set! new-world-frame (box-frame (world-box updated-world)))
     updated-world))
-(module+ test
-  (require rackunit))
 
 ; spawn a new world if the last world is old enough
 (define (spawn-world worlds)
@@ -49,6 +47,7 @@
   (point (/ FRAME-X 2) (- (frame-bottom (box-frame box))
                           (/ (box-side-length box) 2))))
 (module+ test
+  (require rackunit)
   (define half-x-screen (/ FRAME-X 2))
   (define test-box (box 0 (point half-x-screen 20) 40 (frame 40 0 15) 20 10))
   (check-equal? (update-box-center-point test-box) (point half-x-screen 20)))

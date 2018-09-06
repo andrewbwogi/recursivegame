@@ -19,6 +19,19 @@
              (equal? (world-level w) level))
         (make-jump w)
         w)))
+(module+ test
+  (require rackunit)
+  (define worlds (list
+                  (world (box 0 (point 490 820.2651909722222) 318.0 (frame 980 331.25 648.75) 0 0)
+                         (list (obstacle 690.5 688.0 693.0 5 35 1.5 45)) (frame 979 0 980) 1 (timers 217 17 -25))
+                  (world (box 0 (point 490 970.7651909722222) 17.0 (frame 980 481.75 498.25) 0 0)
+                         '() (frame 980 331.25 648.75) 2 (timers 386 20 576))))
+  (define new-worlds (list
+                  (world (box 0 (point 490 820.2651909722222) 318.0 (frame 980 331.25 648.75) 0 DEFAULT-JUMP-VELOCITY)
+                         (list (obstacle 690.5 688.0 693.0 5 35 1.5 45)) (frame 979 0 980) 1 (timers 217 17 -25))
+                  (world (box 0 (point 490 970.7651909722222) 17.0 (frame 980 481.75 498.25) 0 0)
+                         '() (frame 980 331.25 648.75) 2 (timers 386 20 576))))
+  (check-equal? (jump worlds 1) new-worlds))
 
 ; construct new box with fresh jump
 (define (make-jump w)

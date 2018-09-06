@@ -25,6 +25,11 @@
 (define (box-position box)
   (make-posn (point-x (box-center-point box))
              (point-y (box-center-point box))))
+(module+ test
+  (require rackunit)
+  (define half-x-screen (/ FRAME-X 2))
+  (define test-box (box 0 (point half-x-screen 20) 40 (frame 40 0 15) 20 10))
+  (check-equal? (box-position test-box) (make-posn half-x-screen 20)))
   
 ; make a list of obstacles into a list of positions of these obstacles
 (define (obstacles-positions obstacles frame)
@@ -32,6 +37,11 @@
     (cons (make-posn (obstacle-x-value obstacle) (- (frame-bottom frame) (/ (obstacle-height obstacle) 2)))
           list-rest))
   (foldr extract-positions '() obstacles))
+(module+ test
+  (define empty '())
+  (define test-obstacle (list (obstacle 896.0 895.0 900.0 5 35 1.5 45)))
+  (define test-obstacles (list (obstacle 693.5 692.5 697.5 5 35 1.5 45) (obstacle 896.0 895.0 900.0 5 35 1.5 45) ))
+  (check-equal? (obstacles-positions test-obstacle) (make-posn half-x-screen 20)))
 
 ; draw an image of the box
 (define (draw-box box)
