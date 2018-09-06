@@ -105,23 +105,16 @@
                               [velocity (update-obstacle-velocity box o)]))
                (remove-gone-obstacles obstacles frame))
           (spawn-obstacle timers box frame)))
-(module+ test
-  (define empty '())
-  (define test-obstacle (list (obstacle 896.0 895.0 900.0 5 35 1.5 45)))
-  (define test-obstacles (list (obstacle 693.5 692.5 697.5 5 35 1.5 45) (obstacle 896.0 895.0 900.0 5 35 1.5 45) ))
-  (define test-gone-obstacle (list (obstacle -1 -2 -3 5 35 1.5 45) (obstacle 896.0 895.0 900.0 5 35 1.5 45)))
-  (define test-frame (frame 979 0 980))
-  (define test-timers (timers 354 13 112))
-  (define test-timers-spawn (timers -1 -1 112))
+(module+ test 
   (check-equal? (update-obstacles test-box empty test-frame test-timers) '())
   (check-equal? (update-obstacles test-box test-obstacle test-frame test-timers)
-                (list (obstacle 894.5 892.0 897.0 5 35 1.5 45)))
+                test-obstacle-updated)
   (check-equal? (update-obstacles test-box test-obstacles test-frame test-timers)
-                (list (obstacle 692.0 689.5 694.5 5 35 1.5 45) (obstacle 894.5 892.0 897.0 5 35 1.5 45)))
+                test-obstacles-updated)
   (check-equal? (update-obstacles test-box test-gone-obstacle test-frame test-timers)
-                (list (obstacle 894.5 892.0 897.0 5 35 1.5 45)))
+                test-gone-obstacle-updated)
   (check-equal? (update-obstacles test-box test-obstacle test-frame test-timers-spawn)
-                (list (obstacle 894.5 892.0 897.0 5 35 1.5 45) (initialize-obstacle test-frame))))
+                (list (first test-obstacle-updated) (initialize-obstacle test-frame))))
 
 ; add a new obstacle to the world's obstacle list if it is time and the box size is not too big
 (define (spawn-obstacle timers box frame)
@@ -194,7 +187,6 @@
         (or (> (frame-left (box-frame box)) (obstacle-rear-edge o))
             (< (frame-right (box-frame box)) (obstacle-front-edge o))))))
 (module+ test
-  (define test-obstacle-collision (list (obstacle 9 8 10 5 35 1.5 45)))
   (check-equal? (above-obstacles? test-box test-obstacles) #t)
   (check-equal? (above-obstacles? test-box-ground test-obstacle-collision) #f))
 
