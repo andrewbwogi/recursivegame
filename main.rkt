@@ -15,10 +15,8 @@
 
 ; TODO:
 
-; put all test objects in structs-constants
-; add contracts to main functions
-; obstacle front edge and rear edge not correctly computed
 ; test-box is inconsistent in center-point and frame coordinates.
+; obstacle front edge and rear edge not correctly computed
 ; have complete x and y coordinates in obstacles. dont use frame-bottom in rendering. create a generic get-positions function.
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?

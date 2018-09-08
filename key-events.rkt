@@ -1,6 +1,5 @@
 #lang racket
-(provide player-action)
-(require 2htdp/universe "structs-constants.rkt")
+(require 2htdp/universe "structs-constants.rkt" (file "/usr/racket/share/pkgs/htdp-lib/2htdp/private/stop.rkt"))
 
 ; here we define actions of the player
 (define (player-action w k)
@@ -29,3 +28,7 @@
                                  [velocity DEFAULT-JUMP-VELOCITY]))
   (struct-copy world w
                  [box new-box]))
+
+(provide 
+ (contract-out
+  [player-action ((listof world?) string? . -> . (or/c (listof world?) stop-the-world?))]))

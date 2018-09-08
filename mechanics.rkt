@@ -1,5 +1,4 @@
 #lang racket
-(provide update-game initialize-world collision?)
 (require "structs-constants.rkt" rackunit)
 
 ; update the state of all the worlds
@@ -212,3 +211,9 @@
   (obstacle (frame-right frame) (- DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
             (+ DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2)) DEFAULT-OBSTACLE-WIDTH
             DEFAULT-OBSTACLE-HEIGHT DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))
+
+(provide
+ (contract-out
+  [update-game ((listof world?) . -> . (listof world?))]
+  [initialize-world (frame? integer? . -> . (listof world?))]
+  [collision? ((listof world?) . -> . boolean?)]))

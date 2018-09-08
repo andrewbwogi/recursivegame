@@ -1,5 +1,4 @@
 #lang racket
-(provide render-game render-the-end)
 (require lang/posn "structs-constants.rkt")
 (require (prefix-in 2htdp: 2htdp/image))
 
@@ -53,3 +52,8 @@
 (define (render-the-end w)
   (2htdp:overlay (2htdp:text "Game Over" 36 "black"); (text (number->string (spawn-timers-timer2 (recursive-world-spawn-timers w)))  36 "black")
            (render-game w)))
+
+(provide
+ (contract-out
+  [render-game ((listof world?) . -> . 2htdp:image?)]
+  [render-the-end ((listof world?) . -> . 2htdp:image?)]))
