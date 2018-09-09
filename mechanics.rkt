@@ -48,8 +48,7 @@
 (module+ test
   (require rackunit)
   (define half-x-screen (/ FRAME-X 2))
-  (define test-box (box 0 (point half-x-screen 20) 40 (frame 40 0 15) 20 10))
-  (check-equal? (update-box-center-point test-box) (point half-x-screen 20)))
+  (check-equal? (update-box-center-point test-box) (point half-x-screen 920)))
 
 ; update the size of the box
 (define (update-box-side-length box)
@@ -69,7 +68,7 @@
 (module+ test
   (define old-world-frame (frame 900 0 900))
   (check-equal? (update-box-frame test-box old-world-frame)
-                (frame 880 (- half-x-screen 20) (+ half-x-screen 20))))
+                (frame 860 (- half-x-screen 20) (+ half-x-screen 20))))
 
 ; set new jump value, which is the y distance to the world bottom
 (define (update-box-jump-value old-box)  
@@ -78,8 +77,8 @@
       (+ (box-jump-value old-box)
          (+ (* (box-velocity old-box) TIME) (* TIME TIME (/ 1 2) GRAVITY)))))
 (module+ test
-  (define new-jump-value (+ 20 (+ (* 10 TIME) (* TIME TIME (/ 1 2) GRAVITY))))
-  (define test-box-ground (struct-copy box test-box [jump-value -1]))
+  (define new-jump-value (+ 40 (+ (* -10 TIME) (* TIME TIME (/ 1 2) GRAVITY))))
+  
   (check-equal? (update-box-jump-value test-box) new-jump-value)
   (check-equal? (update-box-jump-value test-box-ground) 0))
 
@@ -89,7 +88,7 @@
       0
       (+ (box-velocity old-box) (* GRAVITY TIME))))
 (module+ test
-  (define new-velocity (+ 10 (* GRAVITY TIME)))
+  (define new-velocity (+ -10 (* GRAVITY TIME)))
   (check-equal? (update-box-velocity test-box) new-velocity)
   (check-equal? (update-box-velocity test-box-ground) 0))
 
@@ -147,9 +146,8 @@
       (+ (obstacle-velocity o) (* (obstacle-acceleration o) TIME))
       (obstacle-velocity o)))
 (module+ test
-  (define test-obstacle-under (obstacle 7 5 9 5 35 1.5 45))
   (check-equal? (update-obstacle-velocity test-box (first test-obstacle)) 1.5)
-  (check-equal? (update-obstacle-velocity test-box test-obstacle-under) 2.4375))
+  (check-equal? (update-obstacle-velocity test-box (first test-obstacle-under)) 2.4375))
 
 ; update all timers
 (define (update-timers old-timers)
@@ -187,7 +185,7 @@
             (< (frame-right (box-frame box)) (obstacle-front-edge o))))))
 (module+ test
   (check-equal? (above-obstacles? test-box test-obstacles) #t)
-  (check-equal? (above-obstacles? test-box-ground test-obstacle-collision) #f))
+  (check-equal? (above-obstacles? test-box-ground test-obstacle-under) #f))
 
 ; is there a collision between any box and any obstacle?
 (define (collision? worlds)

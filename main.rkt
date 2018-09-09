@@ -15,7 +15,7 @@
 
 ; TODO:
 
-; test-box is inconsistent in center-point and frame coordinates.
+; function parameters should be as specific as possible
 ; obstacle front edge and rear edge not correctly computed
 ; have complete x and y coordinates in obstacles. dont use frame-bottom in rendering. create a generic get-positions function.
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
