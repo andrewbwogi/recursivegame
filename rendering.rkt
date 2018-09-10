@@ -1,5 +1,4 @@
 #lang racket
-(provide render-game render-the-end)
 (require lang/posn "structs-constants.rkt")
 (require (prefix-in 2htdp: 2htdp/image))
 
@@ -25,6 +24,9 @@
 (define (box-position box)
   (make-posn (point-x (box-center-point box))
              (point-y (box-center-point box))))
+(module+ test
+  (require rackunit)
+  (check-equal? (box-position test-box) (make-posn half-x-screen 20)))
   
 ; make a list of obstacles into a list of positions of these obstacles
 (define (obstacles-positions obstacles frame)
@@ -32,6 +34,8 @@
     (cons (make-posn (obstacle-x-value obstacle) (- (frame-bottom frame) (/ (obstacle-height obstacle) 2)))
           list-rest))
   (foldr extract-positions '() obstacles))
+(module+ test
+  (check-equal? (obstacles-positions test-obstacle) (make-posn half-x-screen 20)))
 
 ; draw an image of the box
 (define (draw-box box)
@@ -48,3 +52,8 @@
 (define (render-the-end w)
   (2htdp:overlay (2htdp:text "Game Over" 36 "black"); (text (number->string (spawn-timers-timer2 (recursive-world-spawn-timers w)))  36 "black")
            (render-game w)))
+
+(provide
+ (contract-out
+  [render-game ((listof world?) . -> . 2htdp:image?)]
+  [render-the-end ((listof world?) . -> . 2htdp:image?)]))
