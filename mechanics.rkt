@@ -82,7 +82,7 @@
                               [y-value (- (frame-bottom old-frame) (/ (obstacle-height o) 2))]
                               [front-edge (- (obstacle-x-value o) (/ (obstacle-width o) 2))]
                               [rear-edge (+ (obstacle-x-value o) (/ (obstacle-width o) 2))]
-                              [velocity (update-obstacle-velocity box o)]))
+                              [velocity (update-obstacle-velocity (box-frame box) o)]))
                (remove-gone-obstacles obstacles old-frame))
           (spawn-obstacle timers box old-frame)))
 
@@ -104,9 +104,9 @@
       '()))
 
 ; accelerate the obstacle if it is under the box
-(define (update-obstacle-velocity b o)
-  (if (and (< (frame-left (box-frame b)) (obstacle-rear-edge o))
-           (> (frame-right (box-frame b)) (obstacle-front-edge o)))
+(define (update-obstacle-velocity b-frame o)
+  (if (and (< (frame-left b-frame) (obstacle-rear-edge o))
+           (> (frame-right b-frame) (obstacle-front-edge o)))
       (+ (obstacle-velocity o) (* (obstacle-acceleration o) TIME))
       (obstacle-velocity o)))
 
@@ -135,19 +135,19 @@
           (timers-spawn-obstacle old-timers)
           (sub1 (timers-spawn-world old-timers))))
 
-; make sure all obstacles are outside the box' collision area
-(define (above-obstacles? box obstacles)
-  (for/and ([o obstacles])
-    (or (> (box-jump-value box) (obstacle-height o))
-        (or (> (frame-left (box-frame box)) (obstacle-rear-edge o))
-            (< (frame-right (box-frame box)) (obstacle-front-edge o))))))
-
 ; is there a collision between any box and any obstacle?
 (define (collision? worlds)
   (for/or ([w worlds])
     (if (not (above-obstacles? (world-box w) (world-obstacles w)))
         #t
         #f)))
+
+; make sure all obstacles are outside the box' collision area
+(define (above-obstacles? box obstacles)
+  (for/and ([o obstacles])
+    (or (> (box-jump-value box) (obstacle-height o))
+        (or (> (frame-left (box-frame box)) (obstacle-rear-edge o))
+            (< (frame-right (box-frame box)) (obstacle-front-edge o))))))
 
 ; we begin the game with one box and one obstacle
 (define (initialize-world frame level)
