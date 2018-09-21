@@ -75,13 +75,14 @@
       (+ (box-velocity old-box) (* GRAVITY TIME))))
 
 ; make each obstacle move one step to the left
-(define (update-obstacles box obstacles old-frame timers)
+(define (update-obstacles box obstacles old-frame timers) 
   (append (map (lambda (o)
+                 (define new-x-value (- (obstacle-x-value o) (obstacle-velocity o)))
                  (struct-copy obstacle o
-                              [x-value (- (obstacle-x-value o) (obstacle-velocity o))]
+                              [x-value new-x-value]
                               [y-value (- (frame-bottom old-frame) (/ (obstacle-height o) 2))]
-                              [front-edge (- (obstacle-x-value o) (/ (obstacle-width o) 2))]
-                              [rear-edge (+ (obstacle-x-value o) (/ (obstacle-width o) 2))]
+                              [front-edge (- new-x-value (/ (obstacle-width o) 2))]
+                              [rear-edge (+ new-x-value (/ (obstacle-width o) 2))]
                               [velocity (update-obstacle-velocity (box-frame box) o)]))
                (remove-gone-obstacles obstacles old-frame))
           (spawn-obstacle timers box old-frame)))

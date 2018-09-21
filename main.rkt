@@ -15,8 +15,8 @@
 
 ; TODO:
 
-; do a separate function for calculating obstacle edges. obstacle edges calculated correctly?
-; is there a better name for 'old-timers'?
+; obstacles hoover a bit
+; is there a better name for 'old-timers'? where should the 'old' prefix be used?
 ; fix all comments
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
