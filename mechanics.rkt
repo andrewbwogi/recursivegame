@@ -75,15 +75,16 @@
       (+ (box-velocity old-box) (* GRAVITY TIME))))
 
 ; make each obstacle move one step to the left
-(define (update-obstacles box obstacles frame timers)
+(define (update-obstacles box obstacles old-frame timers)
   (append (map (lambda (o)
                  (struct-copy obstacle o
                               [x-value (- (obstacle-x-value o) (obstacle-velocity o))]
+                              [y-value (- (frame-bottom old-frame) (/ (obstacle-height o) 2))]
                               [front-edge (- (obstacle-x-value o) (/ (obstacle-width o) 2))]
                               [rear-edge (+ (obstacle-x-value o) (/ (obstacle-width o) 2))]
                               [velocity (update-obstacle-velocity box o)]))
-               (remove-gone-obstacles obstacles frame))
-          (spawn-obstacle timers box frame)))
+               (remove-gone-obstacles obstacles old-frame))
+          (spawn-obstacle timers box old-frame)))
 
 ; add a new obstacle to the world's obstacle list if it is time and the box size is not too big
 (define (spawn-obstacle timers box frame)
@@ -159,7 +160,8 @@
   (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 25 25) 0 0))
 
 ; a new obstacle
-(define (initialize-obstacle frame)
-  (obstacle (frame-right frame) (- DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
-            (+ DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2)) DEFAULT-OBSTACLE-WIDTH
+(define (initialize-obstacle old-frame)
+  (obstacle (frame-right old-frame) (- DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
+            (+ DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
+            (- (frame-bottom old-frame) (/ DEFAULT-OBSTACLE-HEIGHT 2)) DEFAULT-OBSTACLE-WIDTH
             DEFAULT-OBSTACLE-HEIGHT DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))

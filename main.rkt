@@ -15,9 +15,9 @@
 
 ; TODO:
 
-; add unit tests
-; add contracts to main functions
-; have complete x and y coordinates in obstacles. dont use frame-bottom in rendering. create a generic get-positions function.
+; specify each argument to exactly fit its use
+; do a separate function for calculating obstacle edges. obstacle edges calculated correctly?
+; fix all comments
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
 ; (A) link TIME to box growth, and all velocities. make them a fraction of time so when time changes, relationships remain the same.

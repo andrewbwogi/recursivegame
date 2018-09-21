@@ -8,7 +8,7 @@
 
 ; the two main objects of the game
 (struct box (id center-point side-length frame jump-value velocity) #:transparent)
-(struct obstacle (x-value front-edge rear-edge width height velocity acceleration) #:transparent)
+(struct obstacle (x-value y-value front-edge rear-edge width height velocity acceleration) #:transparent)
 
 ; coordinates for a point
 (struct point (x y) #:transparent)
