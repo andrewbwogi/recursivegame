@@ -14,8 +14,8 @@
              #:when (< (box-side-length (world-box w)) FRAME-X))
     (define updated-world
       (world
-       (update-box (world-box w) (world-frame w))
-       (update-obstacles (world-box w) (world-obstacles w) (world-frame w) (world-timers w))
+       (update-box (world-box w) new-world-frame)
+       (update-obstacles (world-box w) (world-obstacles w) new-world-frame (world-timers w))
        new-world-frame
        (world-level w)
        (update-timers (world-timers w))))
@@ -34,18 +34,20 @@
 
 ; make the box grow in the corners, and update its y-value according to velocity
 (define (update-box old-box old-world-frame)
+  (define new-side-length (update-box-side-length old-box))
+  (define new-frame (update-box-frame old-box old-world-frame))
   (box
    (box-id old-box)
-   (update-box-center-point old-box)
-   (update-box-side-length old-box)
-   (update-box-frame old-box old-world-frame)
+   (update-box-center-point new-frame new-side-length)
+   new-side-length
+   new-frame
    (update-box-jump-value old-box)
    (update-box-velocity old-box)))
 
 ; set correct box center point in relation to the ground and its distance to ground
-(define (update-box-center-point box)
-  (point (/ FRAME-X 2) (- (frame-bottom (box-frame box))
-                          (/ (box-side-length box) 2))))
+(define (update-box-center-point new-frame new-side-length)
+  (point (/ FRAME-X 2) (- (frame-bottom new-frame)
+                          (/ new-side-length 2))))
 
 ; update the size of the box
 (define (update-box-side-length box)
@@ -152,17 +154,17 @@
 
 ; we begin the game with one box and one obstacle
 (define (initialize-world frame level)
-  (define box0 (initialize-box))
+  (define box0 (initialize-box frame))
   (define obstacles0 '())
   (list (world box0 obstacles0 frame level (timers ARM-TIME OBSTACLE-SPAWN-TIME WORLD-SPAWN-TIME))))
 
-; a new box
-(define (initialize-box)
-  (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 25 25) 0 0))
+; a new box. default values will be replaced with correct values by update-box
+(define (initialize-box old-frame)
+  (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 0 0) 0 0))
 
 ; a new obstacle
 (define (initialize-obstacle old-frame)
-  (obstacle (frame-right old-frame) (- DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
-            (+ DEFAULT-OBSTACLE-X-VALUE (/ DEFAULT-OBSTACLE-WIDTH 2))
-            (- (frame-bottom old-frame) (/ DEFAULT-OBSTACLE-HEIGHT 2)) DEFAULT-OBSTACLE-WIDTH
+  (define x-value (frame-right old-frame))
+  (obstacle x-value DEFAULT-OBSTACLE-Y-VALUE (- x-value (/ DEFAULT-OBSTACLE-WIDTH 2))
+            (+ x-value (/ DEFAULT-OBSTACLE-WIDTH 2)) DEFAULT-OBSTACLE-WIDTH
             DEFAULT-OBSTACLE-HEIGHT DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))

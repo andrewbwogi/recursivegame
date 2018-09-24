@@ -15,7 +15,8 @@
 
 ; TODO:
 
-; obstacles hoover a bit
+; merge with master
+; bottom most obstacles hoover a bit
 ; is there a better name for 'old-timers'? where should the 'old' prefix be used?
 ; fix all comments
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
