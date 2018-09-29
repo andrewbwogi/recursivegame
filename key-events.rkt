@@ -1,6 +1,5 @@
 #lang racket
-(provide player-action)
-(require 2htdp/universe "structs-constants.rkt")
+(require 2htdp/universe "structs-constants.rkt" (file "/usr/racket/share/pkgs/htdp-lib/2htdp/private/stop.rkt"))
 
 ; here we define actions of the player
 (define (player-action w k)
@@ -19,6 +18,9 @@
              (equal? (world-level w) level))
         (make-jump w)
         w)))
+(module+ test
+  (require rackunit)
+  (check-equal? (jump worlds 1) new-worlds))
 
 ; construct new box with fresh jump
 (define (make-jump w)
@@ -26,3 +28,7 @@
                                  [velocity DEFAULT-JUMP-VELOCITY]))
   (struct-copy world w
                  [box new-box]))
+
+(provide 
+ (contract-out
+  [player-action ((listof world?) string? . -> . (or/c (listof world?) stop-the-world?))]))

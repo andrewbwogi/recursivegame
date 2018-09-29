@@ -9,16 +9,17 @@
     (on-key player-action)
     (to-draw render-game)
     (on-tick update-game TICK-RATE)
-    (stop-when collision? render-the-end)))
+ 212   (stop-when collision? render-the-end)))
 
 (start-game)
 
 ; TODO:
 
-; merge with master
+; construct functions that fit unit testing
 ; bottom most obstacles hoover a bit
 ; is there a better name for 'old-timers'? where should the 'old' prefix be used?
 ; fix all comments
+; obstacle front edge and rear edge not correctly computed
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
 ; (A) link TIME to box growth, and all velocities. make them a fraction of time so when time changes, relationships remain the same.
