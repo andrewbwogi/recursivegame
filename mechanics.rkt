@@ -103,7 +103,7 @@
                               [y-value (- (frame-bottom old-frame) (/ (obstacle-height o) 2))]
                               [front-edge (- new-x-value (/ (obstacle-width o) 2))]
                               [rear-edge (+ new-x-value (/ (obstacle-width o) 2))]
-                              [velocity (update-obstacle-velocity (box-frame old-box) o)]))
+                              [velocity (update-obstacle-velocity old-box o)]))
                (remove-gone-obstacles obstacles old-frame))
           (spawn-obstacle timers old-box old-frame)))
 (module+ test 
@@ -143,14 +143,14 @@
   (check-equal? (remove-gone-obstacles empty test-frame) '()))
 
 ; accelerate the obstacle if it is under the box
-(define (update-obstacle-velocity b-frame o)
-  (if (and (< (frame-left b-frame) (obstacle-rear-edge o))
-           (> (frame-right b-frame) (obstacle-front-edge o)))
+(define (update-obstacle-velocity current-box o)
+  (if (and (< (frame-left (box-frame current-box)) (obstacle-rear-edge o))
+           (> (frame-right (box-frame current-box)) (obstacle-front-edge o)))
       (+ (obstacle-velocity o) (* (obstacle-acceleration o) TIME))
       (obstacle-velocity o)))
 (module+ test
-  (check-equal? (update-obstacle-velocity (box-frame test-box) (first test-obstacle)) 1.5)
-  (check-equal? (update-obstacle-velocity (box-frame test-box) (first test-obstacle-under)) 2.4375))
+  (check-equal? (update-obstacle-velocity test-box (first test-obstacle)) 1.5)
+  (check-equal? (update-obstacle-velocity test-box (first test-obstacle-under)) 2.4375))
 
 ; update all timers
 (define (update-timers old-timers)

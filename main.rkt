@@ -15,7 +15,6 @@
 
 ; TODO:
 
-; construct functions that fit unit testing
 ; bottom most obstacles hoover a bit
 ; is there a better name for 'old-timers'? where should the 'old' prefix be used?
 ; fix all comments
