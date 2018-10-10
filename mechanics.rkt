@@ -207,12 +207,11 @@
 (define (initialize-box old-frame)
   (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 0 0) 0 0))
 
-; a new obstacle
+; a new obstacle. default values will be replaced with correct values by update-obstacles
 (define (initialize-obstacle old-frame)
   (define x-value (frame-right old-frame))
-  (obstacle x-value DEFAULT-OBSTACLE-Y-VALUE (- x-value (/ DEFAULT-OBSTACLE-WIDTH 2))
-            (+ x-value (/ DEFAULT-OBSTACLE-WIDTH 2)) DEFAULT-OBSTACLE-WIDTH
-            DEFAULT-OBSTACLE-HEIGHT DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))
+  (obstacle x-value 0 0 0 DEFAULT-OBSTACLE-WIDTH DEFAULT-OBSTACLE-HEIGHT
+            DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))
 
 (provide
  (contract-out

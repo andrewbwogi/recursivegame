@@ -9,13 +9,15 @@
     (on-key player-action)
     (to-draw render-game)
     (on-tick update-game TICK-RATE)
- 212   (stop-when collision? render-the-end)))
+    (stop-when collision? render-the-end)))
 
 (start-game)
 
 ; TODO:
 
-; bottom most obstacles hoover a bit
+; obstacles dont spawn after first level
+; sometimes the jump does not respond
+; create a floor for bottom most world
 ; is there a better name for 'old-timers'? where should the 'old' prefix be used?
 ; fix all comments
 ; obstacle front edge and rear edge not correctly computed
