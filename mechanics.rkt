@@ -73,14 +73,14 @@
                 (frame 860 (- half-x-screen 20) (+ half-x-screen 20))))
 
 ; set new jump value, which is the y distance to the world bottom
-(define (update-box-jump-value old-box)  
-  (if (< (round (box-jump-value old-box)) 0)
+(define (update-box-jump-value old-box)
+  (define jump-value (+ (box-jump-value old-box)
+         (+ (* (box-velocity old-box) TIME) (* TIME TIME (/ 1 2) GRAVITY))))
+  (if (<= jump-value 0)
       0
-      (+ (box-jump-value old-box)
-         (+ (* (box-velocity old-box) TIME) (* TIME TIME (/ 1 2) GRAVITY)))))
+      jump-value))
 (module+ test
   (define new-jump-value (+ 40 (+ (* -10 TIME) (* TIME TIME (/ 1 2) GRAVITY))))
-  
   (check-equal? (update-box-jump-value test-box) new-jump-value)
   (check-equal? (update-box-jump-value test-box-ground) 0))
 
