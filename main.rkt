@@ -15,7 +15,6 @@
 
 ; TODO:
 
-; create a floor for bottom most world
 ; is there a better name for 'old-timers'? where should the 'old' prefix be used?
 ; fix all comments
 ; obstacle front edge and rear edge not correctly computed

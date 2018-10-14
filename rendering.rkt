@@ -11,7 +11,9 @@
                                   (obstacles-positions (world-obstacles w))))
   (2htdp:place-images (get-all get-images worlds)
                 (get-all get-positions worlds)
-                FRAME))
+                (2htdp:scene+line FRAME FRAME-X ( + FRAME-Y 0) 0 ( + FRAME-Y 0) "black")))
+
+
 
 ; get a list of images of boxes and obstacles
 (define (get-all func worlds)
