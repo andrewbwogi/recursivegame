@@ -210,8 +210,10 @@
 ; a new obstacle. default values will be replaced with correct values by update-obstacles
 (define (initialize-obstacle old-frame)
   (define x-value (frame-right old-frame))
-  (obstacle x-value 0 0 0 DEFAULT-OBSTACLE-WIDTH DEFAULT-OBSTACLE-HEIGHT
-            DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))
+  (define y-value (frame-bottom old-frame))
+  (obstacle x-value y-value (- x-value (/ DEFAULT-OBSTACLE-WIDTH 2))
+            (+ x-value (/ DEFAULT-OBSTACLE-WIDTH 2)) DEFAULT-OBSTACLE-WIDTH
+            DEFAULT-OBSTACLE-HEIGHT DEFAULT-OBSTACLE-VELOCITY DEFAULT-OBSTACLE-ACCELERATION))
 
 (provide
  (contract-out
