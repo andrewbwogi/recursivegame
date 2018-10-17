@@ -11,9 +11,7 @@
                                   (obstacles-positions (world-obstacles w))))
   (2htdp:place-images (get-all get-images worlds)
                 (get-all get-positions worlds)
-                (2htdp:scene+line FRAME FRAME-X ( + FRAME-Y 0) 0 ( + FRAME-Y 0) "black")))
-
-
+                (2htdp:scene+line FRAME FRAME-X FRAME-Y 0 FRAME-Y "slateblue")))
 
 ; get a list of images of boxes and obstacles
 (define (get-all func worlds)
@@ -51,7 +49,7 @@
 
 ; just place "game over" text on top of last rendered image
 (define (render-the-end w)
-  (2htdp:overlay (2htdp:text "Game Over" 36 "black"); (text (number->string (spawn-timers-timer2 (recursive-world-spawn-timers w)))  36 "black")
+  (2htdp:overlay (2htdp:text "Game Over" 36 "black")
            (render-game w)))
 
 (provide
