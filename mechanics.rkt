@@ -1,13 +1,13 @@
 #lang racket
 (require "structs-constants.rkt" rackunit)
 
-; update the state of all the worlds.
+; update the state of all the worlds
 (define (update-game w)
   (spawn-world (update-worlds w)))
 
 ; every tick all boxes grow and perhaps move vertically.
 ; objects spawn and move closer to the boxes.
-; remove passed obstacles and the world when it is as big as the frame.
+; remove passed obstacles and the world when it is as big as the frame
 (define (update-worlds worlds)
   (define new-world-frame GAME-FRAME)
   (for/list ([w worlds]
@@ -22,7 +22,7 @@
     (set! new-world-frame (box-frame (world-box updated-world)))
     updated-world))
 
-; spawn a new world if the last world is old enough.
+; spawn a new world if the last world is old enough
 (define (spawn-world worlds)
   (if (< (timers-spawn-world (world-timers (last worlds))) 0)
       (append (for/list ([w worlds]
@@ -32,7 +32,7 @@
               (initialize-world (box-frame (world-box (last worlds))) (+ (length worlds) 1)))
       worlds))
 
-; make the box grow in the corners, and update its y-value according to velocity.
+; make the box grow in the corners, and update its y-value according to velocity
 (define (update-box current-box current-world-frame)
   (define new-side-length (update-box-side-length current-box))
   (define new-frame (update-box-frame current-box current-world-frame))
@@ -44,7 +44,7 @@
    (update-box-jump-value current-box)
    (update-box-velocity current-box)))
 
-; set correct box center point in relation to the ground and its distance to ground.
+; set correct box center point in relation to the ground and its distance to ground
 (define (update-box-center-point current-frame current-side-length)
   (point (/ FRAME-X 2) (- (frame-bottom current-frame)
                           (/ current-side-length 2))))
@@ -53,13 +53,13 @@
   (define half-x-screen (/ FRAME-X 2))
   (check-equal? (update-box-center-point (box-frame test-box) (box-side-length test-box)) (point half-x-screen 920)))
 
-; update the size of the box.
+; update the size of the box
 (define (update-box-side-length current-box)
   (+ (box-side-length current-box) BOX-GROWTH))
 (module+ test
   (check-equal? (update-box-side-length test-box) (+ 40 BOX-GROWTH)))
 
-; set the area that defines the borders of the box.
+; set the area that defines the borders of the box
 (define (update-box-frame current-box current-world-frame)
   (define half-side-length (/ (box-side-length current-box) 2))
   (define center-x (point-x (box-center-point current-box)))
@@ -73,7 +73,7 @@
   (check-equal? (update-box-frame test-box current-world-frame)
                 (frame 860 (- half-x-screen 20) (+ half-x-screen 20))))
 
-; set new jump value, which is the y distance to the world bottom.
+; set new jump value, which is the y distance to the world bottom
 (define (update-box-jump-value current-box)
   (define jump-value (+ (box-jump-value current-box)
          (+ (* (box-velocity current-box) TIME) (* TIME TIME (/ 1 2) GRAVITY))))
@@ -85,7 +85,7 @@
   (check-equal? (update-box-jump-value test-box) new-jump-value)
   (check-equal? (update-box-jump-value test-box-ground) 0))
 
-; set new box velocity.
+; set new box velocity
 (define (update-box-velocity current-box)
   (if (< (round (box-jump-value current-box)) 0)
       0
@@ -96,7 +96,7 @@
   (check-equal? (update-box-velocity test-box-ground) 0))
 
 ; make each obstacle move one step to the left.
-; if an obstacle is under a box, make it accelerate.
+; if an obstacle is under a box, make it accelerate
 (define (update-obstacles current-box obstacles current-world-frame current-timers) 
   (append (map (lambda (o)
                  (define new-x-value (- (obstacle-x-value o) (obstacle-velocity o)))
@@ -119,8 +119,8 @@
   (check-equal? (update-obstacles test-box test-obstacle test-frame test-timers-spawn)
                 (list (first test-obstacle-updated) (initialize-obstacle test-frame))))
 
-; add a new obstacle to the world's obstacle list
-; if it is time and the box size is not too big.
+; add a new obstacle to the world's obstacle list if it
+; is time and the box size is not too big
 (define (spawn-obstacle current-timers current-box current-world-frame)
   (if
    (and (< (timers-arm-obstacle-spawn current-timers) 0)
@@ -133,7 +133,7 @@
                 (list (initialize-obstacle test-frame)))
   (check-equal? (spawn-obstacle test-timers test-box test-frame) '()))
 
-; accelerate the obstacle if it is under the box.
+; accelerate the obstacle if it is under the box
 (define (remove-gone-obstacles obstacles current-world-frame)
   (if (not (empty? obstacles))
       (if (< (obstacle-rear-edge (first obstacles)) (frame-left current-world-frame))
@@ -145,7 +145,7 @@
   (check-equal? (remove-gone-obstacles test-obstacle test-frame) test-obstacle)
   (check-equal? (remove-gone-obstacles empty test-frame) '()))
 
-; accelerate the obstacle if it is under the box.
+; accelerate the obstacle if it is under the box
 (define (update-obstacle-velocity current-box o)
   (if (and (< (frame-left (box-frame current-box)) (obstacle-rear-edge o))
            (> (frame-right (box-frame current-box)) (obstacle-front-edge o)))
@@ -155,7 +155,7 @@
   (check-equal? (update-obstacle-velocity test-box (first test-obstacle)) 1.5)
   (check-equal? (update-obstacle-velocity test-box (first test-obstacle-under)) 2.4375))
 
-; update all timers.
+; update all timers
 (define (update-timers current-timers)
   (cond
     [(< (timers-spawn-obstacle current-timers) 0)
@@ -167,17 +167,17 @@
   (check-equal? (update-timers test-timers) (timers 353 13 111))
   (check-equal? (update-timers (timers -1 13 112)) (timers -1 12 111)))
 
-; reset spawn-obstacle and arm-spawn-obstacle timers.
+; reset spawn-obstacle and arm-spawn-obstacle timers
 (define (reset-obstacle-arm current-timers)
   (timers ARM-TIME (random (round OBSTACLE-SPAWN-TIME)) (timers-spawn-world current-timers)))
 
-; count down time during which an obstacle may be spawned.
+; count down time during which an obstacle may be spawned
 (define (decrement-world-obstacle current-timers) 
   (timers (timers-arm-obstacle-spawn current-timers)
           (sub1 (timers-spawn-obstacle current-timers))
           (sub1 (timers-spawn-world current-timers))))
 
-; count down the time to the spawn window.
+; count down the time to the spawn window
 (define (decrement-world-arm current-timers) 
   (timers (sub1 (timers-arm-obstacle-spawn current-timers))
           (timers-spawn-obstacle current-timers)
@@ -200,18 +200,18 @@
         #t
         #f)))
 
-; we begin the game with one box and one obstacle.
+; we begin the game with one box and one obstacle
 (define (initialize-world current-world-frame level)
   (define box0 (initialize-box))
   (define obstacles0 '())
   (list (world box0 obstacles0 current-world-frame level
                (timers ARM-TIME OBSTACLE-SPAWN-TIME WORLD-SPAWN-TIME))))
 
-; return a new box. default values will be replaced with correct values by update-box.
+; return a new box. default values will be replaced with correct values by update-box
 (define (initialize-box)
   (box 0 DEFAULT-CENTER-POINT DEFAULT-BOX-SIZE (frame 0 0 0) 0 0))
 
-; return a new obstacle. default values will be replaced with correct values by update-obstacles.
+; return a new obstacle. default values will be replaced with correct values by update-obstacles
 (define (initialize-obstacle current-world-frame)
   (define x-value (frame-right current-world-frame))
   (define y-value (frame-bottom current-world-frame))
