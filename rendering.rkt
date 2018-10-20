@@ -21,9 +21,9 @@
             acc)))
 
 ; make a box into a position of the box
-(define (box-position box)
-  (make-posn (point-x (box-center-point box))
-             (point-y (box-center-point box))))
+(define (box-position current-box)
+  (make-posn (point-x (box-center-point current-box))
+             (point-y (box-center-point current-box))))
 (module+ test
   (require rackunit)
   (check-equal? (box-position test-box) (make-posn half-x-screen 920)))
@@ -37,8 +37,8 @@
   (check-equal? (obstacles-positions test-obstacle) (list (make-posn 896.0 979))))
 
 ; draw an image of the box
-(define (draw-box box)
-  (2htdp:square (box-side-length box) "outline" "slateblue"))
+(define (draw-box current-box)
+  (2htdp:square (box-side-length current-box) "outline" "slateblue"))
 
 ; draw images of the obstacles, put them in a list
 (define (draw-obstacles obstacles)
