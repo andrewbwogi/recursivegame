@@ -1,12 +1,13 @@
 #lang racket
 (require "structs-constants.rkt" rackunit)
 
-; Update the state of all the worlds.
+; update the state of all the worlds.
 (define (update-game w)
   (spawn-world (update-worlds w)))
 
-; Every tick all boxes grow and perhaps move vertically. Objects spawn and move closer to the boxes.
-; Remove passed obstacles and the world when it is as big as the frame.
+; every tick all boxes grow and perhaps move vertically.
+; objects spawn and move closer to the boxes.
+; remove passed obstacles and the world when it is as big as the frame.
 (define (update-worlds worlds)
   (define new-world-frame GAME-FRAME)
   (for/list ([w worlds]
@@ -21,7 +22,7 @@
     (set! new-world-frame (box-frame (world-box updated-world)))
     updated-world))
 
-; Spawn a new world if the last world is old enough.
+; spawn a new world if the last world is old enough.
 (define (spawn-world worlds)
   (if (< (timers-spawn-world (world-timers (last worlds))) 0)
       (append (for/list ([w worlds]
@@ -31,7 +32,7 @@
               (initialize-world (box-frame (world-box (last worlds))) (+ (length worlds) 1)))
       worlds))
 
-; Make the box grow in the corners, and update its y-value according to velocity.
+; make the box grow in the corners, and update its y-value according to velocity.
 (define (update-box current-box current-world-frame)
   (define new-side-length (update-box-side-length current-box))
   (define new-frame (update-box-frame current-box current-world-frame))
