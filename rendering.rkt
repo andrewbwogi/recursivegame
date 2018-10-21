@@ -2,9 +2,8 @@
 (require lang/posn "structs-constants.rkt")
 (require (prefix-in 2htdp: 2htdp/image))
 
-; first, render one layer of a box and obstacles.
-; then, render all the remaining layers and
-; combine them into one composite image
+; create all images and get all object positions. combine them in
+; a composite image.
 (define (render-game worlds)
   (define (get-images w) (cons (draw-box (world-box w)) (draw-obstacles (world-obstacles w))))
   (define (get-positions w) (cons (box-position (world-box w))
@@ -13,7 +12,7 @@
                 (get-all get-positions worlds)
                 (2htdp:scene+line FRAME FRAME-X FRAME-Y 0 FRAME-Y "slateblue")))
 
-; get a list of images of boxes and obstacles
+; get everything of a kind from all worlds
 (define (get-all func worlds)
   (for/fold ([acc '()])
             ([w worlds])            
@@ -47,7 +46,7 @@
           list-rest))
   (foldr extract-images '() obstacles))
 
-; just place "game over" text on top of last rendered image
+; place "game over" text on top of last rendered image
 (define (render-the-end w)
   (2htdp:overlay (2htdp:text "Game Over" 36 "black")
            (render-game w)))

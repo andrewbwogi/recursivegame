@@ -16,7 +16,7 @@
 ; frame defines the x-coordinates of the frame's left and right edge and y-coordinate for the bottom edge
 (struct frame (bottom left right) #:transparent)
 
-; a container for timers that decide when next obstacle can be spawned
+; a container for timers that decide when next obstacle and world can be spawned
 (struct timers (arm-obstacle-spawn spawn-obstacle spawn-world) #:transparent)
 
 ; constants for the main window frame
@@ -29,8 +29,7 @@
 
 ; constants for boxes
 (define DEFAULT-BOX-SIZE 5)
-(define DEFAULT-CENTER-POINT (point (/ FRAME-X 2)
-                                    (- FRAME-Y (/ DEFAULT-BOX-SIZE 2))))
+(define DEFAULT-CENTER-POINT (point (/ FRAME-X 2) (- FRAME-Y (/ DEFAULT-BOX-SIZE 2))))
 (define BOX-GROWTH 0.5)
 (define DEFAULT-JUMP-VELOCITY 90)
 (define BOX-SIZE-LIMIT-FOR-OBSTACLE-SPAWN (* FRAME-X 0.8))

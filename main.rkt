@@ -15,7 +15,6 @@
 
 ; TODO:
 
-; fix all comments
 ; obstacle front edge and rear edge not correctly computed
 ; use array to hold worlds for faster jumps?
 ; use racket object system to represent objects and their methods
