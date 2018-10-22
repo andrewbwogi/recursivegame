@@ -201,10 +201,10 @@
         #f)))
 
 ; we begin the game with one box and one obstacle
-(define (initialize-world current-world-frame level)
+(define (initialize-world game-frame level)
   (define box0 (initialize-box))
   (define obstacles0 '())
-  (list (world box0 obstacles0 current-world-frame level
+  (list (world box0 obstacles0 game-frame level
                (timers ARM-TIME OBSTACLE-SPAWN-TIME WORLD-SPAWN-TIME))))
 
 ; return a new box. default values will be replaced with correct values by update-box

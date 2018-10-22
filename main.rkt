@@ -15,10 +15,8 @@
 
 ; TODO:
 
-; obstacle front edge and rear edge not correctly computed
 ; use array to hold worlds for faster jumps?
 ; use racket object system to represent objects and their methods
-; spawn new worlds based on time, not size
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
 ; (A) link TIME to box growth, and all velocities. make them a fraction of time so when time changes, relationships remain the same.
