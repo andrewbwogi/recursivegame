@@ -10,8 +10,8 @@
 ; remove passed obstacles and the world when it is as big as the frame
 (define (update-worlds worlds)
   (define new-world-frame GAME-FRAME)
-  (for/list ([w worlds]
-             #:when (< (box-side-length (world-box w)) FRAME-X))
+  (for/vector ([w worlds]
+               #:when (< (box-side-length (world-box w)) FRAME-X))
     (define updated-world
       (world
        (update-box (world-box w) new-world-frame)
@@ -24,12 +24,14 @@
 
 ; spawn a new world if the last world is old enough
 (define (spawn-world worlds)
-  (if (< (timers-spawn-world (world-timers (last worlds))) 0)
-      (append (for/list ([w worlds]
-                         [k (in-naturals 1)])
-                (struct-copy world w
-                             [level k]))
-              (initialize-world (box-frame (world-box (last worlds))) (+ (length worlds) 1)))
+  (define last (- (vector-length worlds) 1))
+  (if (< (timers-spawn-world (world-timers (vector-ref worlds last))) 0)
+      (vector-append (for/vector ([w worlds]
+                                  [k (in-naturals 1)])
+                       (struct-copy world w
+                                    [level k]))
+                     (initialize-world (box-frame (world-box (vector-ref worlds last)))
+                                       (+ (vector-length worlds) 1)))
       worlds))
 
 ; make the box grow in the corners, and update its y-value according to velocity
@@ -76,7 +78,7 @@
 ; set new jump value, which is the y distance to the world bottom
 (define (update-box-jump-value current-box)
   (define jump-value (+ (box-jump-value current-box)
-         (+ (* (box-velocity current-box) TIME) (* TIME TIME (/ 1 2) GRAVITY))))
+                        (+ (* (box-velocity current-box) TIME) (* TIME TIME (/ 1 2) GRAVITY))))
   (if (<= jump-value 0)
       0
       jump-value))
@@ -204,8 +206,8 @@
 (define (initialize-world game-frame level)
   (define box0 (initialize-box))
   (define obstacles0 '())
-  (list (world box0 obstacles0 game-frame level
-               (timers ARM-TIME OBSTACLE-SPAWN-TIME WORLD-SPAWN-TIME))))
+  (vector (world box0 obstacles0 game-frame level
+                 (timers ARM-TIME OBSTACLE-SPAWN-TIME WORLD-SPAWN-TIME))))
 
 ; return a new box. default values will be replaced with correct values by update-box
 (define (initialize-box)
@@ -221,6 +223,6 @@
 
 (provide
  (contract-out
-  [update-game ((listof world?) . -> . (listof world?))]
-  [initialize-world (frame? integer? . -> . (listof world?))]
-  [collision? ((listof world?) . -> . boolean?)]))
+  [update-game ((vectorof world?) . -> . (vectorof world?))]
+  [initialize-world (frame? integer? . -> . (vectorof world?))]
+  [collision? ((vectorof world?) . -> . boolean?)]))

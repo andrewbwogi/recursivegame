@@ -13,11 +13,10 @@
 
 ; let the box at particular level jump if it is on the ground
 (define (jump worlds level)
-  (for/list ([w worlds])
-    (if (and (< (box-jump-value (world-box w)) 1.5)
-             (equal? (world-level w) level))
-        (make-jump w)
-        w)))
+  (define current-world (vector-ref worlds (- level 1))) 
+  (when (< (box-jump-value (world-box current-world)) 1.5)
+    (vector-set! worlds (- level 1) (make-jump current-world)))
+  worlds)
 (module+ test
   (require rackunit)
   (check-equal? (jump worlds 1) new-worlds))
@@ -31,4 +30,4 @@
 
 (provide 
  (contract-out
-  [player-action ((listof world?) string? . -> . (or/c (listof world?) stop-the-world?))]))
+  [player-action ((vectorof world?) string? . -> . (or/c (vectorof world?) stop-the-world?))]))

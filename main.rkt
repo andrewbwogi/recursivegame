@@ -15,7 +15,7 @@
 
 ; TODO:
 
-; use array to hold worlds for faster jumps?
+; use (= jump-level 0) in jump
 ; use racket object system to represent objects and their methods
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?

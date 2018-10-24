@@ -53,5 +53,5 @@
 
 (provide
  (contract-out
-  [render-game ((listof world?) . -> . 2htdp:image?)]
-  [render-the-end ((listof world?) . -> . 2htdp:image?)]))
+  [render-game ((vectorof world?) . -> . 2htdp:image?)]
+  [render-the-end ((vectorof world?) . -> . 2htdp:image?)]))
