@@ -14,7 +14,7 @@
 ; let the box at particular level jump if it is on the ground
 (define (jump worlds level)
   (define current-world (vector-ref worlds (- level 1))) 
-  (when (< (box-jump-value (world-box current-world)) 1.5)
+  (when (= (box-jump-value (world-box current-world)) 0)
     (vector-set! worlds (- level 1) (make-jump current-world)))
   worlds)
 (module+ test

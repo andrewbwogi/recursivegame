@@ -15,8 +15,6 @@
 
 ; TODO:
 
-; use (= jump-level 0) in jump
-; use racket object system to represent objects and their methods
 ; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
 ; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
 ; (A) link TIME to box growth, and all velocities. make them a fraction of time so when time changes, relationships remain the same.
