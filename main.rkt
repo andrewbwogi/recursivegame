@@ -15,9 +15,6 @@
 
 ; TODO:
 
-; (A) fix so time and distance follow seconds and meter. calculate precise default-timers
-; (A) why does update-box need a current-world-frame? can this frame be a part of the box?
-; (A) link TIME to box growth, and all velocities. make them a fraction of time so when time changes, relationships remain the same.
 ; (A) add option for fullcscreen acceleration for objects
 ; (A) load constants from file
 ; put up todo list as github issues

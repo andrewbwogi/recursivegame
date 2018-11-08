@@ -47,7 +47,7 @@
 
 ; constants for world physics
 (define GRAVITY -70)
-(define TICK-RATE (/ 1 48))
+(define TICK-RATE (/ 1 30))
 (define TIME TICK-RATE)
 
 ; constants for spawn time
